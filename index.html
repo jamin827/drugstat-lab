@@ -125,12 +125,35 @@
     .formula-card h3 { margin:8px 0; letter-spacing:-.04em; }
     .formula { padding:12px; border-radius:12px; background:#f1f7f6; color:var(--navy); font-family:Georgia,serif; text-align:center; }
     .formula-card p { margin-bottom:0; color:var(--muted); font-size:13px; }
+    .explore-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .explore-card { padding:24px; }
+    .explore-card.wide { grid-column:1/-1; }
+    .explore-card h3 { margin:0 0 7px; letter-spacing:-.04em; }
+    .explore-card > p { margin:0 0 18px; color:var(--muted); font-size:13px; }
+    .compare-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .compare-table th, .compare-table td { padding:11px 9px; border-bottom:1px solid var(--line); text-align:right; }
+    .compare-table th:first-child, .compare-table td:first-child { text-align:left; }
+    .compare-table th { color:var(--muted); font-size:11px; }
+    .compare-table .trad-text { color:var(--traditional); font-weight:900; }
+    .compare-table .ai-text { color:var(--ai); font-weight:900; }
+    .steps { display:grid; gap:10px; }
+    .step { padding:12px 14px; border-radius:12px; background:#f3f8f7; color:var(--navy); font-family:Georgia, "Malgun Gothic", serif; font-size:13px; }
+    .step b { display:block; margin-bottom:3px; color:var(--muted); font-family:"Malgun Gothic",sans-serif; font-size:10px; }
+    .sim-head { display:flex; justify-content:space-between; align-items:center; gap:15px; }
+    .sim-button { border:0; padding:10px 15px; border-radius:11px; background:var(--navy); color:white; font-size:12px; font-weight:900; cursor:pointer; }
+    .sim-button:hover { background:var(--ai); }
+    #simChart { height:270px; margin-top:10px; }
+    .sim-summary { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+    .sim-summary div { padding:11px 13px; border-radius:12px; background:#f3f8f7; color:var(--muted); font-size:11px; }
+    .sim-summary b { display:block; margin-bottom:2px; font-size:16px; }
+    .sim-summary div:first-child b { color:var(--traditional); }
+    .sim-summary div:last-child b { color:var(--ai); }
     .note { margin-top:18px; padding:18px 22px; border-left:4px solid var(--traditional); background:#fff5f0; color:#79503d; border-radius:0 14px 14px 0; font-size:13px; }
     footer { padding:30px 0 46px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
     @media(max-width:900px){
       nav{display:none}.hero{grid-template-columns:1fr;padding-top:25px}.hero-visual{min-height:270px}
       .lab-grid{grid-template-columns:1fr}.controls{position:static}.stat-grid{grid-template-columns:repeat(2,1fr)}
-      .formula-grid{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:10px}
+      .formula-grid,.explore-grid{grid-template-columns:1fr}.explore-card.wide{grid-column:auto}.section-head{display:block}.section-head p{margin-top:10px}
     }
     @media(max-width:600px){
       .wrap{width:min(100% - 24px,1160px)}h1{font-size:43px}.prob-box{grid-template-columns:1fr}.versus{display:none}
@@ -222,6 +245,39 @@
         </div>
       </section>
 
+      <section id="deeper">
+        <div class="section-head"><h2>한 단계 더 깊은 탐구</h2><p>정규분포 근사가 실제 이항분포와 얼마나 비슷한지 확인하고, 무작위 실험 결과와 계산 과정을 함께 살펴봅니다.</p></div>
+        <div class="explore-grid">
+          <article class="card explore-card">
+            <h3>이항분포 정확값 vs 정규분포 근삿값</h3>
+            <p>목표 성공 개수 이상이 나올 확률을 두 방법으로 계산하여 근사 오차를 비교합니다.</p>
+            <table class="compare-table">
+              <thead><tr><th>방식</th><th>이항분포 정확값</th><th>정규분포 근삿값</th><th>절대 오차</th></tr></thead>
+              <tbody>
+                <tr><td class="trad-text">전통 방식</td><td id="exactTrad"></td><td id="approxTrad"></td><td id="errorTrad"></td></tr>
+                <tr><td class="ai-text">AI 기반</td><td id="exactAi"></td><td id="approxAi"></td><td id="errorAi"></td></tr>
+              </tbody>
+            </table>
+          </article>
+          <article class="card explore-card">
+            <h3>현재 조건의 계산 과정</h3>
+            <p>입력한 값이 평균, 표준편차, Z점수 공식에 어떻게 대입되는지 보여줍니다.</p>
+            <div class="steps">
+              <div class="step"><b>전통 방식</b><span id="stepsTrad"></span></div>
+              <div class="step"><b>AI 기반</b><span id="stepsAi"></span></div>
+            </div>
+          </article>
+          <article class="card explore-card wide">
+            <div class="sim-head"><div><h3>무작위 임상시험 시뮬레이션</h3><p>현재 조건으로 각 방식을 1,000회 실험하여 성공 개수의 실제 빈도를 확인합니다.</p></div><button class="sim-button" id="runSim">1,000회 실험하기</button></div>
+            <canvas id="simChart"></canvas>
+            <div class="sim-summary">
+              <div><b id="simTrad">실험 전</b><span>전통 방식 시뮬레이션 평균 · 목표 달성 비율</span></div>
+              <div><b id="simAi">실험 전</b><span>AI 기반 시뮬레이션 평균 · 목표 달성 비율</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section id="concept">
         <div class="section-head"><h2>계산에 사용한 통계 개념</h2><p>후보물질의 성공 여부를 독립적인 시행으로 가정하고, 큰 표본에서는 이항분포를 정규분포로 근사합니다.</p></div>
         <div class="formula-grid">
@@ -239,6 +295,7 @@
     const $ = id => document.getElementById(id);
     const inputs = ["n","target","pTrad","pAi"].map($);
     const canvas = $("chart"), ctx = canvas.getContext("2d");
+    const simCanvas = $("simChart"), simCtx = simCanvas.getContext("2d");
     let mode = "raw", state = {};
 
     function erf(x) {
@@ -250,6 +307,15 @@
     const cdf = z => .5*(1+erf(z/Math.sqrt(2)));
     const pdf = z => Math.exp(-.5*z*z)/Math.sqrt(2*Math.PI);
     const fmtProb = p => p < .0001 ? "< 0.01%" : p > .9999 ? "> 99.99%" : (p*100).toFixed(2)+"%";
+    const fmtExact = p => p < 1e-8 ? p.toExponential(2) : p > .99999999 ? "> 99.999999%" : (p*100).toFixed(5)+"%";
+    function logChoose(n,k) {
+      let value=0; for(let i=1;i<=k;i++) value+=Math.log(n-k+i)-Math.log(i); return value;
+    }
+    function binomialTail(n,p,target) {
+      let sum=0;
+      for(let k=target;k<=n;k++) sum+=Math.exp(logChoose(n,Math.min(k,n-k))+k*Math.log(p)+(n-k)*Math.log(1-p));
+      return Math.min(1,sum);
+    }
     function calc(n,p,target) {
       const mu=n*p, sd=Math.sqrt(n*p*(1-p)), z=(target-.5-mu)/sd;
       return {mu,sd,z,prob:1-cdf(z)};
@@ -258,7 +324,8 @@
       const n=+$("n").value, target=+$("target").value, pt=+$("pTrad").value/100, pa=+$("pAi").value/100;
       $("target").max=n; if(target>n){$("target").value=n; return update();}
       const t=calc(n,pt,+$("target").value), a=calc(n,pa,+$("target").value);
-      state={n,target:+$("target").value,t,a};
+      const exactT=binomialTail(n,pt,+$("target").value), exactA=binomialTail(n,pa,+$("target").value);
+      state={n,target:+$("target").value,pt,pa,t,a,exactT,exactA};
       $("nVal").textContent=n+"개"; $("targetVal").textContent=state.target+"개 이상";
       $("pTradVal").textContent=(pt*100).toFixed(0)+"%"; $("pAiVal").textContent=(pa*100).toFixed(0)+"%";
       $("muTrad").textContent=t.mu.toFixed(1)+"개"; $("sdTrad").textContent=t.sd.toFixed(2);
@@ -266,7 +333,42 @@
       $("probTrad").textContent=fmtProb(t.prob); $("probAi").textContent=fmtProb(a.prob);
       $("zTrad").textContent="Z = "+t.z.toFixed(2)+" · 연속성 보정 적용";
       $("zAi").textContent="Z = "+a.z.toFixed(2)+" · 연속성 보정 적용";
+      $("exactTrad").textContent=fmtExact(exactT); $("approxTrad").textContent=fmtExact(t.prob); $("errorTrad").textContent=(Math.abs(exactT-t.prob)*100).toFixed(5)+"%p";
+      $("exactAi").textContent=fmtExact(exactA); $("approxAi").textContent=fmtExact(a.prob); $("errorAi").textContent=(Math.abs(exactA-a.prob)*100).toFixed(5)+"%p";
+      $("stepsTrad").innerHTML=`μ = ${n} × ${pt.toFixed(2)} = ${t.mu.toFixed(2)}<br>σ = √(${n} × ${pt.toFixed(2)} × ${(1-pt).toFixed(2)}) = ${t.sd.toFixed(2)}<br>Z = (${state.target} - 0.5 - ${t.mu.toFixed(2)}) ÷ ${t.sd.toFixed(2)} = ${t.z.toFixed(2)}`;
+      $("stepsAi").innerHTML=`μ = ${n} × ${pa.toFixed(2)} = ${a.mu.toFixed(2)}<br>σ = √(${n} × ${pa.toFixed(2)} × ${(1-pa).toFixed(2)}) = ${a.sd.toFixed(2)}<br>Z = (${state.target} - 0.5 - ${a.mu.toFixed(2)}) ÷ ${a.sd.toFixed(2)} = ${a.z.toFixed(2)}`;
+      $("simTrad").textContent="조건 변경됨 · 다시 실험하세요"; $("simAi").textContent="조건 변경됨 · 다시 실험하세요";
+      clearSimulation();
       draw();
+    }
+    function clearSimulation() {
+      const dpr=window.devicePixelRatio||1,r=simCanvas.getBoundingClientRect();
+      simCanvas.width=r.width*dpr;simCanvas.height=r.height*dpr;simCtx.setTransform(dpr,0,0,dpr,0,0);
+      simCtx.clearRect(0,0,r.width,r.height);simCtx.fillStyle="#71818a";simCtx.font='13px "Malgun Gothic"';simCtx.textAlign="center";
+      simCtx.fillText("버튼을 누르면 1,000회 실험 결과가 여기에 표시됩니다.",r.width/2,r.height/2);
+    }
+    function oneTrial(n,p) { let success=0; for(let i=0;i<n;i++) if(Math.random()<p) success++; return success; }
+    function runSimulation() {
+      const trials=1000, tCounts=Array(state.n+1).fill(0), aCounts=Array(state.n+1).fill(0);
+      let tSum=0,aSum=0,tGoal=0,aGoal=0;
+      for(let i=0;i<trials;i++){
+        const t=oneTrial(state.n,state.pt),a=oneTrial(state.n,state.pa);tCounts[t]++;aCounts[a]++;tSum+=t;aSum+=a;
+        if(t>=state.target)tGoal++;if(a>=state.target)aGoal++;
+      }
+      $("simTrad").textContent=`평균 ${(tSum/trials).toFixed(2)}개 · 달성 ${(tGoal/trials*100).toFixed(1)}%`;
+      $("simAi").textContent=`평균 ${(aSum/trials).toFixed(2)}개 · 달성 ${(aGoal/trials*100).toFixed(1)}%`;
+      drawSimulation(tCounts,aCounts);
+    }
+    function drawSimulation(tCounts,aCounts) {
+      const dpr=window.devicePixelRatio||1,r=simCanvas.getBoundingClientRect(),w=r.width,h=r.height,pad={l:45,r:15,t:18,b:38};
+      simCanvas.width=w*dpr;simCanvas.height=h*dpr;simCtx.setTransform(dpr,0,0,dpr,0,0);simCtx.clearRect(0,0,w,h);
+      let lo=Math.max(0,Math.floor(Math.min(state.t.mu-4*state.t.sd,state.a.mu-4*state.a.sd))),hi=Math.min(state.n,Math.ceil(Math.max(state.t.mu+4*state.t.sd,state.a.mu+4*state.a.sd)));
+      const max=Math.max(...tCounts,...aCounts,1),X=x=>pad.l+(x-lo)/(hi-lo)*(w-pad.l-pad.r),Y=y=>h-pad.b-y/max*(h-pad.t-pad.b),bar=Math.max(2,(w-pad.l-pad.r)/(hi-lo+1)*.38);
+      simCtx.strokeStyle="#e6eeee";simCtx.fillStyle="#71818a";simCtx.font='10px "Malgun Gothic"';
+      for(let i=0;i<=4;i++){const y=pad.t+i*(h-pad.t-pad.b)/4;simCtx.beginPath();simCtx.moveTo(pad.l,y);simCtx.lineTo(w-pad.r,y);simCtx.stroke();}
+      for(let k=lo;k<=hi;k++){const x=X(k);simCtx.fillStyle="#ef835499";simCtx.fillRect(x-bar,Y(tCounts[k]),bar,h-pad.b-Y(tCounts[k]));simCtx.fillStyle="#087f8c99";simCtx.fillRect(x,Y(aCounts[k]),bar,h-pad.b-Y(aCounts[k]));}
+      simCtx.fillStyle="#71818a";simCtx.textAlign="center";for(let i=0;i<=5;i++){const v=Math.round(lo+i*(hi-lo)/5);simCtx.fillText(v,X(v),h-18);}
+      simCtx.font='bold 11px "Malgun Gothic"';simCtx.fillText("1,000회 실험에서 나온 성공 개수별 빈도",pad.l+(w-pad.l-pad.r)/2,h-3);
     }
     function setupCanvas() {
       const dpr=window.devicePixelRatio||1, r=canvas.getBoundingClientRect();
@@ -339,6 +441,7 @@
       draw();
     }));
     window.addEventListener("resize",draw);
+    $("runSim").addEventListener("click",runSimulation);
     update();
   </script>
 </body>
