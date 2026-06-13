@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DrugStat Lab | AI 신약 개발 확률 분석</title>
+  <style>
+    :root {
+      --ink: #12212b;
+      --muted: #647680;
+      --line: #dbe7e8;
+      --paper: #f6faf9;
+      --white: #ffffff;
+      --traditional: #ef8354;
+      --ai: #087f8c;
+      --navy: #153b50;
+      --mint: #d9f2ee;
+      --shadow: 0 18px 45px rgba(21, 59, 80, .10);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 90% 5%, rgba(8,127,140,.12), transparent 28rem),
+        radial-gradient(circle at 0 35%, rgba(239,131,84,.08), transparent 25rem),
+        var(--paper);
+      font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.55;
+    }
+    button, input { font: inherit; }
+    .wrap { width: min(1160px, calc(100% - 36px)); margin: auto; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 0;
+    }
+    .logo { display: flex; gap: 11px; align-items: center; font-weight: 900; letter-spacing: -.04em; }
+    .logo-mark {
+      display: grid; place-items: center; width: 37px; height: 37px; border-radius: 12px;
+      color: white; background: var(--navy); font-family: Georgia, serif; font-size: 20px;
+    }
+    nav { display: flex; gap: 22px; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 700; }
+    .hero {
+      display: grid; grid-template-columns: 1.2fr .8fr; gap: 54px; align-items: center;
+      min-height: 470px; padding: 54px 0 72px;
+    }
+    .eyebrow {
+      display: inline-block; padding: 7px 12px; border-radius: 99px;
+      background: var(--mint); color: #086c76; font-size: 12px; font-weight: 900;
+      letter-spacing: .08em;
+    }
+    h1 { margin: 20px 0 18px; font-size: clamp(42px, 6vw, 74px); line-height: 1.04; letter-spacing: -.07em; }
+    h1 em { color: var(--ai); font-style: normal; }
+    .hero p { max-width: 650px; color: var(--muted); font-size: 17px; }
+    .hero-visual {
+      position: relative; min-height: 330px; border-radius: 32px;
+      background: linear-gradient(145deg, #153b50, #087f8c);
+      box-shadow: var(--shadow); overflow: hidden; color: white;
+    }
+    .hero-visual:before, .hero-visual:after {
+      content:""; position:absolute; border:1px solid rgba(255,255,255,.19); border-radius:50%;
+    }
+    .hero-visual:before { width: 350px; height:350px; right:-130px; top:-100px; }
+    .hero-visual:after { width: 230px; height:230px; left:-80px; bottom:-110px; }
+    .molecule { position: absolute; inset: 0; }
+    .dot { position:absolute; width:17px; height:17px; background:#9ce4d9; border:5px solid white; border-radius:50%; box-shadow: 0 0 0 8px rgba(255,255,255,.08); }
+    .dot:nth-child(1){left:22%;top:30%}.dot:nth-child(2){left:47%;top:19%}.dot:nth-child(3){left:66%;top:45%}.dot:nth-child(4){left:41%;top:63%}.dot:nth-child(5){left:73%;top:75%}
+    .bond { position:absolute; height:2px; background:rgba(255,255,255,.55); transform-origin:left; }
+    .b1{width:110px;left:24%;top:32%;transform:rotate(-18deg)}.b2{width:103px;left:49%;top:22%;transform:rotate(48deg)}
+    .b3{width:112px;left:43%;top:64%;transform:rotate(-35deg)}.b4{width:103px;left:67%;top:48%;transform:rotate(67deg)}
+    .visual-stat { position:absolute; left:28px; bottom:27px; z-index:2; }
+    .visual-stat b { display:block; font-size:44px; letter-spacing:-.06em; }
+    .visual-stat span { color:rgba(255,255,255,.75); font-size:13px; }
+    section { padding: 34px 0 70px; }
+    .section-head { display:flex; justify-content:space-between; align-items:end; gap:30px; margin-bottom:24px; }
+    h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.055em; }
+    .section-head p { max-width:550px; margin:0; color:var(--muted); }
+    .lab-grid { display:grid; grid-template-columns: 340px 1fr; gap:22px; align-items:start; }
+    .card { background:rgba(255,255,255,.92); border:1px solid rgba(219,231,232,.9); border-radius:24px; box-shadow:var(--shadow); }
+    .controls { padding:25px; position:sticky; top:18px; }
+    .controls h3, .chart-card h3 { margin:0 0 18px; letter-spacing:-.035em; }
+    .field { margin: 0 0 20px; }
+    .field-line { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+    label { font-size:13px; font-weight:800; }
+    .value {
+      min-width:66px; padding:5px 8px; text-align:center; color:var(--navy);
+      background:#edf5f4; border-radius:8px; font-size:13px; font-weight:900;
+    }
+    input[type=range] { width:100%; accent-color:var(--ai); }
+    .legend { display:flex; gap:14px; margin-top:18px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+    .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
+    .result-area { display:grid; gap:22px; }
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .stat-card { padding:18px; background:white; border:1px solid var(--line); border-radius:18px; }
+    .stat-card span { display:block; color:var(--muted); font-size:11px; font-weight:800; }
+    .stat-card b { display:block; margin-top:5px; font-size:25px; letter-spacing:-.05em; }
+    .stat-card.trad b { color:var(--traditional); }
+    .stat-card.ai b { color:var(--ai); }
+    .chart-card { padding:25px; overflow:hidden; }
+    .chart-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:15px; }
+    .chart-tabs { display:flex; gap:6px; background:#eef5f4; padding:4px; border-radius:10px; }
+    .chart-tabs button { border:0; padding:7px 11px; border-radius:8px; background:transparent; color:var(--muted); font-size:11px; font-weight:900; cursor:pointer; }
+    .chart-tabs button.active { background:white; color:var(--navy); box-shadow:0 2px 8px rgba(0,0,0,.08); }
+    canvas { display:block; width:100%; height:330px; }
+    .axis-guide {
+      display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;
+      padding-top:14px; border-top:1px solid var(--line);
+    }
+    .axis-guide div { padding:11px 13px; border-radius:12px; background:#f3f8f7; color:var(--muted); font-size:11px; }
+    .axis-guide b { display:block; margin-bottom:3px; color:var(--navy); font-size:12px; }
+    .prob-box {
+      display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:18px;
+      padding:24px; background:var(--navy); color:white; border-radius:24px; box-shadow:var(--shadow);
+    }
+    .prob { padding:4px 10px; }
+    .prob small { display:block; color:rgba(255,255,255,.62); font-weight:800; }
+    .prob strong { display:block; margin:4px 0; font-size:36px; letter-spacing:-.05em; }
+    .prob span { color:rgba(255,255,255,.65); font-size:11px; }
+    .versus { display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.12); font-size:11px; font-weight:900; }
+    .formula-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .formula-card { padding:24px; }
+    .formula-card .num { color:var(--ai); font-family:Georgia,serif; font-size:13px; font-weight:bold; }
+    .formula-card h3 { margin:8px 0; letter-spacing:-.04em; }
+    .formula { padding:12px; border-radius:12px; background:#f1f7f6; color:var(--navy); font-family:Georgia,serif; text-align:center; }
+    .formula-card p { margin-bottom:0; color:var(--muted); font-size:13px; }
+    .note { margin-top:18px; padding:18px 22px; border-left:4px solid var(--traditional); background:#fff5f0; color:#79503d; border-radius:0 14px 14px 0; font-size:13px; }
+    footer { padding:30px 0 46px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+    @media(max-width:900px){
+      nav{display:none}.hero{grid-template-columns:1fr;padding-top:25px}.hero-visual{min-height:270px}
+      .lab-grid{grid-template-columns:1fr}.controls{position:static}.stat-grid{grid-template-columns:repeat(2,1fr)}
+      .formula-grid{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:10px}
+    }
+    @media(max-width:600px){
+      .wrap{width:min(100% - 24px,1160px)}h1{font-size:43px}.prob-box{grid-template-columns:1fr}.versus{display:none}
+      .stat-grid{grid-template-columns:1fr 1fr}.stat-card b{font-size:20px}.chart-card{padding:16px}.chart-top{display:block}.chart-tabs{margin-top:10px;width:max-content}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo"><span class="logo-mark">D</span> DrugStat Lab</div>
+      <nav><a href="#lab">확률 실험실</a><a href="#concept">통계 개념</a><a href="#limits">탐구 한계</a></nav>
+    </header>
+
+    <main>
+      <div class="hero">
+        <div>
+          <span class="eyebrow">PROBABILITY × DRUG DISCOVERY</span>
+          <h1>신약 개발의 미래를<br><em>확률로 예측하다.</em></h1>
+          <p>이항분포, 정규분포, 표준정규분포를 활용해 전통적 신약 개발과 AI 기반 신약 개발의 임상 1상 목표 달성 가능성을 비교합니다.</p>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="molecule">
+            <i class="bond b1"></i><i class="bond b2"></i><i class="bond b3"></i><i class="bond b4"></i>
+            <i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i>
+          </div>
+          <div class="visual-stat"><b>+25%p</b><span>가정된 임상 1상 성공률 차이</span></div>
+        </div>
+      </div>
+
+      <section id="lab">
+        <div class="section-head">
+          <h2>목표 달성 확률 실험실</h2>
+          <p>조건을 바꾸어 보세요. 목표값을 표준화한 Z점수와 표준정규분포의 누적확률로 두 방식의 목표 달성 가능성을 계산합니다.</p>
+        </div>
+        <div class="lab-grid">
+          <aside class="card controls">
+            <h3>실험 조건</h3>
+            <div class="field">
+              <div class="field-line"><label for="n">후보물질 수 (n)</label><span class="value" id="nVal"></span></div>
+              <input id="n" type="range" min="20" max="300" step="5" value="100">
+            </div>
+            <div class="field">
+              <div class="field-line"><label for="target">목표 성공 개수</label><span class="value" id="targetVal"></span></div>
+              <input id="target" type="range" min="1" max="100" value="75">
+            </div>
+            <div class="field">
+              <div class="field-line"><label for="pTrad">전통 방식 성공률</label><span class="value" id="pTradVal"></span></div>
+              <input id="pTrad" type="range" min="55" max="65" value="60">
+            </div>
+            <div class="field">
+              <div class="field-line"><label for="pAi">AI 방식 성공률</label><span class="value" id="pAiVal"></span></div>
+              <input id="pAi" type="range" min="80" max="90" value="85">
+            </div>
+            <div class="legend">
+              <span><i style="background:var(--traditional)"></i>전통 방식</span>
+              <span><i style="background:var(--ai)"></i>AI 기반</span>
+            </div>
+            <p style="margin:14px 0 0;color:var(--muted);font-size:11px;">탐구 자료의 성공률 범위인 전통 방식 55~65%, AI 기반 80~90% 안에서 비교합니다.</p>
+          </aside>
+
+          <div class="result-area">
+            <div class="stat-grid">
+              <div class="stat-card trad"><span>전통 방식 평균 μ</span><b id="muTrad"></b></div>
+              <div class="stat-card trad"><span>전통 방식 표준편차 σ</span><b id="sdTrad"></b></div>
+              <div class="stat-card ai"><span>AI 방식 평균 μ</span><b id="muAi"></b></div>
+              <div class="stat-card ai"><span>AI 방식 표준편차 σ</span><b id="sdAi"></b></div>
+            </div>
+            <div class="card chart-card">
+              <div class="chart-top">
+                <h3>분포 비교</h3>
+                <div class="chart-tabs">
+                  <button class="active" data-mode="raw">성공 개수 분포</button>
+                  <button data-mode="z">표준정규분포</button>
+                </div>
+              </div>
+              <canvas id="chart"></canvas>
+              <div class="axis-guide">
+                <div><b id="xGuideTitle">X축 · 성공한 후보물질 수</b><span id="xGuideText">전체 후보물질 중 임상 1상에 성공할 것으로 예측되는 개수입니다.</span></div>
+                <div><b id="yGuideTitle">Y축 · 확률밀도</b><span id="yGuideText">곡선의 높이는 값이 모인 정도이며, 곡선 아래 구간의 면적이 해당 구간에 속할 확률입니다.</span></div>
+              </div>
+            </div>
+            <div class="prob-box">
+              <div class="prob"><small>전통 방식 목표 달성 확률</small><strong id="probTrad"></strong><span id="zTrad"></span></div>
+              <div class="versus">VS</div>
+              <div class="prob"><small>AI 기반 목표 달성 확률</small><strong id="probAi"></strong><span id="zAi"></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="concept">
+        <div class="section-head"><h2>계산에 사용한 통계 개념</h2><p>후보물질의 성공 여부를 독립적인 시행으로 가정하고, 큰 표본에서는 이항분포를 정규분포로 근사합니다.</p></div>
+        <div class="formula-grid">
+          <article class="card formula-card"><span class="num">01</span><h3>이항분포</h3><div class="formula">X ~ B(n, p)</div><p>각 후보물질이 임상 1상에 성공하거나 실패한다고 보고 성공 개수 X를 모델링합니다.</p></article>
+          <article class="card formula-card"><span class="num">02</span><h3>정규분포 근사</h3><div class="formula">μ = np, &nbsp; σ = √np(1-p)</div><p>평균과 표준편차를 이용해 성공 개수가 어느 범위에 분포할지 예측합니다.</p></article>
+          <article class="card formula-card"><span class="num">03</span><h3>표준화</h3><div class="formula">Z = (x - 0.5 - μ) / σ</div><p>연속성 보정을 적용한 목표값을 Z점수로 바꾸고 목표 이상이 될 확률을 구합니다.</p></article>
+        </div>
+        <div class="note" id="limits"><b>탐구의 한계:</b> 본 계산은 각 후보물질의 성공이 서로 독립이고 성공률이 일정하다고 가정한 통계 모델입니다. 실제 임상 성공률은 질환 분야, 후보물질 종류, 연구 설계 등에 따라 달라질 수 있습니다.</div>
+      </section>
+    </main>
+    <footer>확률과 통계 수행평가 · AI 기반 신약 개발의 효용성 분석 · DrugStat Lab</footer>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const inputs = ["n","target","pTrad","pAi"].map($);
+    const canvas = $("chart"), ctx = canvas.getContext("2d");
+    let mode = "raw", state = {};
+
+    function erf(x) {
+      const sign = x < 0 ? -1 : 1; x = Math.abs(x);
+      const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911;
+      const t=1/(1+p*x);
+      return sign*(1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x));
+    }
+    const cdf = z => .5*(1+erf(z/Math.sqrt(2)));
+    const pdf = z => Math.exp(-.5*z*z)/Math.sqrt(2*Math.PI);
+    const fmtProb = p => p < .0001 ? "< 0.01%" : p > .9999 ? "> 99.99%" : (p*100).toFixed(2)+"%";
+    function calc(n,p,target) {
+      const mu=n*p, sd=Math.sqrt(n*p*(1-p)), z=(target-.5-mu)/sd;
+      return {mu,sd,z,prob:1-cdf(z)};
+    }
+    function update() {
+      const n=+$("n").value, target=+$("target").value, pt=+$("pTrad").value/100, pa=+$("pAi").value/100;
+      $("target").max=n; if(target>n){$("target").value=n; return update();}
+      const t=calc(n,pt,+$("target").value), a=calc(n,pa,+$("target").value);
+      state={n,target:+$("target").value,t,a};
+      $("nVal").textContent=n+"개"; $("targetVal").textContent=state.target+"개 이상";
+      $("pTradVal").textContent=(pt*100).toFixed(0)+"%"; $("pAiVal").textContent=(pa*100).toFixed(0)+"%";
+      $("muTrad").textContent=t.mu.toFixed(1)+"개"; $("sdTrad").textContent=t.sd.toFixed(2);
+      $("muAi").textContent=a.mu.toFixed(1)+"개"; $("sdAi").textContent=a.sd.toFixed(2);
+      $("probTrad").textContent=fmtProb(t.prob); $("probAi").textContent=fmtProb(a.prob);
+      $("zTrad").textContent="Z = "+t.z.toFixed(2)+" · 연속성 보정 적용";
+      $("zAi").textContent="Z = "+a.z.toFixed(2)+" · 연속성 보정 적용";
+      draw();
+    }
+    function setupCanvas() {
+      const dpr=window.devicePixelRatio||1, r=canvas.getBoundingClientRect();
+      canvas.width=r.width*dpr; canvas.height=r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+      return {w:r.width,h:r.height};
+    }
+    function draw() {
+      const {w,h}=setupCanvas(), pad={l:66,r:18,t:20,b:54};
+      ctx.clearRect(0,0,w,h); ctx.font='11px "Malgun Gothic"'; ctx.lineWidth=1;
+      const colors={t:"#ef8354",a:"#087f8c"};
+      let min,max,threshold;
+      if(mode==="raw"){
+        min=Math.max(0,Math.min(state.t.mu-4*state.t.sd,state.a.mu-4*state.a.sd));
+        max=Math.min(state.n,Math.max(state.t.mu+4*state.t.sd,state.a.mu+4*state.a.sd));
+        min=Math.min(min,state.target-3); max=Math.max(max,state.target+3); threshold=state.target-.5;
+      } else { min=-4; max=4; threshold=null; }
+      const rawMax = mode==="raw"
+        ? Math.max(1/(state.t.sd*Math.sqrt(2*Math.PI)), 1/(state.a.sd*Math.sqrt(2*Math.PI))) * 1.15
+        : .46;
+      const X=x=>pad.l+(x-min)/(max-min)*(w-pad.l-pad.r), Y=y=>h-pad.b-y/rawMax*(h-pad.t-pad.b);
+      ctx.strokeStyle="#e6eeee"; ctx.fillStyle="#71818a";
+      for(let i=0;i<=4;i++){
+        const value=rawMax*(4-i)/4, y=Y(value);
+        ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+        ctx.fillStyle="#71818a";ctx.textAlign="right";ctx.fillText(value.toFixed(mode==="raw"?3:2),pad.l-8,y+4);
+      }
+      for(let i=0;i<=5;i++){const v=min+i*(max-min)/5,x=X(v);ctx.textAlign="center";ctx.fillStyle="#71818a";ctx.fillText(mode==="raw"?Math.round(v):v.toFixed(1),x,h-30);}
+      ctx.strokeStyle="#9fb1b4";ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();
+      ctx.fillStyle="#526a73";ctx.font='bold 11px "Malgun Gothic"';ctx.textAlign="center";
+      ctx.fillText(mode==="raw"?"성공한 후보물질 수 X (개)":"표준점수 Z",pad.l+(w-pad.l-pad.r)/2,h-8);
+      ctx.save();ctx.translate(14,pad.t+(h-pad.t-pad.b)/2);ctx.rotate(-Math.PI/2);ctx.fillText("확률밀도",0,0);ctx.restore();
+      ctx.textAlign="left";
+      const series = mode==="raw" ? [
+        {r:state.t,c:colors.t},{r:state.a,c:colors.a}
+      ] : [{r:{mu:0,sd:1},c:"#153b50"}];
+      series.forEach(s=>{
+        const pts=[]; for(let i=0;i<=220;i++){const x=min+i*(max-min)/220,z=(x-s.r.mu)/s.r.sd,y=pdf(z)/s.r.sd; pts.push([X(x), mode==="raw"?Y(y):Y(pdf(x))]);}
+        if(mode==="raw"){
+          const start=Math.max(threshold,min), fillPts=pts.filter((_,i)=>min+i*(max-min)/220>=start);
+          ctx.beginPath();ctx.moveTo(X(start),h-pad.b);fillPts.forEach(p=>ctx.lineTo(...p));ctx.lineTo(X(max),h-pad.b);ctx.closePath();ctx.fillStyle=s.c+"24";ctx.fill();
+        }
+        ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.strokeStyle=s.c;ctx.lineWidth=2.5;ctx.stroke();
+      });
+      if(mode==="raw"){
+        const tx=X(threshold);ctx.setLineDash([5,5]);ctx.strokeStyle="#153b50";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(tx,pad.t);ctx.lineTo(tx,h-pad.b);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle="#153b50";ctx.font='bold 11px "Malgun Gothic"';ctx.fillText("목표 "+state.target+"개 이상",Math.min(tx+7,w-105),pad.t+12);
+        [{r:state.t,c:colors.t,label:"전통 평균 "},{r:state.a,c:colors.a,label:"AI 평균 "}].forEach((s,i)=>{
+          const x=X(s.r.mu);
+          ctx.setLineDash([3,4]);ctx.strokeStyle=s.c;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x,pad.t+25);ctx.lineTo(x,h-pad.b);ctx.stroke();ctx.setLineDash([]);
+          ctx.fillStyle=s.c;ctx.font='bold 11px "Malgun Gothic"';ctx.fillText(s.label+s.r.mu.toFixed(1)+"개",Math.max(pad.l,Math.min(x-38,w-105)),pad.t+28+i*16);
+        });
+      } else {
+        [state.t,state.a].forEach((r,i)=>{const z=Math.max(-4,Math.min(4,r.z)),x=X(z);ctx.strokeStyle=i?colors.a:colors.t;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,h-pad.b);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=i?colors.a:colors.t;ctx.fillText((i?"AI":"전통")+" Z="+r.z.toFixed(2),Math.min(x+4,w-90),pad.t+14+i*16);});
+      }
+    }
+    inputs.forEach(i=>i.addEventListener("input",update));
+    document.querySelectorAll(".chart-tabs button").forEach(b=>b.addEventListener("click",()=>{
+      document.querySelectorAll(".chart-tabs button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); mode=b.dataset.mode;
+      if(mode==="raw"){
+        $("xGuideTitle").textContent="X축 · 성공한 후보물질 수";
+        $("xGuideText").textContent="전체 후보물질 중 임상 1상에 성공할 것으로 예측되는 개수입니다.";
+        $("yGuideTitle").textContent="Y축 · 확률밀도";
+        $("yGuideText").textContent="곡선의 높이는 값이 모인 정도이며, 목표선 오른쪽 곡선 아래 면적이 목표 달성 확률입니다.";
+      } else {
+        $("xGuideTitle").textContent="X축 · 표준점수 Z";
+        $("xGuideText").textContent="목표 성공 개수가 각 방식의 평균에서 표준편차 몇 배만큼 떨어져 있는지를 나타냅니다.";
+        $("yGuideTitle").textContent="Y축 · 표준정규분포 확률밀도";
+        $("yGuideText").textContent="평균 0, 표준편차 1인 분포의 밀도이며, 특정 Z값 오른쪽 면적이 목표 달성 확률입니다.";
+      }
+      draw();
+    }));
+    window.addEventListener("resize",draw);
+    update();
+  </script>
+</body>
+</html>
